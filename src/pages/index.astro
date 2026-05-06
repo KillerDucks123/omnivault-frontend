@@ -1,0 +1,221 @@
+---
+import { createClient } from "@supabase/supabase-js";
+import "bootstrap-icons/font/bootstrap-icons.css";
+
+const supabase = createClient(
+  import.meta.env.PUBLIC_SUPABASE_URL,
+  import.meta.env.PUBLIC_SUPABASE_KEY,
+);
+
+const { data: items } = await supabase
+  .from("vault_items")
+  .select("*")
+  .order("created_at", { ascending: false });
+
+const STORAGE_URL = `${ import.meta.env.PUBLIC_SUPABASE_URL }/storage/v1/object/public/archivos-vault/`;
+
+interface VaultItem {
+  id: string;
+  tipo: string;
+  contenido: string;
+  titulo?: string;
+  resumen?: string;
+  tags?: string;
+  created_at: string;
+}
+
+import "../styles/global.css";
+---
+
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#4f46e5" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="OmniVault" />
+    <link rel="apple-touch-icon" href="/icon-512.png" />
+    <title>OmniVault Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  </head>
+  <body>
+    <nav class="navbar navbar-dark bg-dark d-md-none px-3 sticky-top">
+        <span class="navbar-brand mb-0 h1">🗄️ OmniVault</span>
+        <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+    </nav>
+
+<div class="container-fluid">
+    <div class="row gx-0">
+        <aside id="sidebarMenu" class="offcanvas offcanvas-md offcanvas-start col-md-3 col-lg-2 bg-dark text-white" tabindex="-1">
+            <div class="offcanvas-header d-md-none border-bottom border-secondary">
+                <h5 class="offcanvas-title"><i class="bi bi-box-seam"></i> OmniVault</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
+            </div>
+            <div class="offcanvas-body d-flex flex-column p-4">
+                <div class="d-none d-md-flex align-items-center mb-4 fs-4 fw-bold"><i class="bi bi-box-seam"></i> OmniVault</div>
+                <nav class="nav flex-column gap-2 w-100">
+                    <a href="#" class="nav-link text-white active bg-primary rounded px-3 py-2"><i class="bi bi-floppy"></i> Dashboard</a>
+                    <a href="#" class="nav-link text-light px-3 py-2"><i class="bi bi-key-fill"></i> Contraseñas</a>
+                    <a href="#" class="nav-link text-light px-3 py-2"><i class="bi bi-gear-wide-connected"></i> Configuración</a>
+                </nav>
+            </div>
+        </aside>
+
+    <main class="main-content col-12 col-md-9 col-lg-10 px-md-4 py-4 min-vh-100" style="background-color: var(--bg-app);">
+      <div class="page-header">
+        <h1>Mi Baúl</h1>
+        <input
+          type="text"
+          id="inputBuscar"
+          class="search-bar"
+          placeholder="Buscar títulos, notas o tags..."
+          autocomplete="off"
+        />
+      </div>
+      <p class="subtitle">Guarda enlaces, imágenes y notas.</p>
+
+      <div class="capture-box">
+        <input type="file" id="inputArchivo" />
+        <textarea
+          id="inputTexto"
+          class="capture-input"
+          placeholder="Escribe una nota o pega un link..."
+          rows="1"
+        ></textarea>
+        
+        <div class="capture-actions">
+          <div class="btn-file-wrapper">
+            <button class="btn-file" id="btnFileTrigger" title="Adjuntar archivo">📎</button>
+            <span id="fileIndicator" class="file-indicator">✓ Listo</span>
+          </div>
+          <button class="btn-save" id="btnGuardar">Guardar</button>
+        </div>
+      </div>
+
+      <div class="grid" id="contenedorTarjetas">
+        {
+          items?.map((item: VaultItem) => (
+            <div class="card item-card" data-tags={item.tags}>
+              {item.tipo === "imagen" && (
+                <img
+                  src={STORAGE_URL + item.contenido}
+                  class="preview-img"
+                  alt="Vista previa"
+                  loading="lazy"
+                />
+              )}
+              <div class="card-content">
+                <div class="card-header-top">
+                  <span class={`tag tag-${item.tipo}`}>{item.tipo}</span>
+                  <div class="menu-container">
+                    <button class="btn-menu" data-id={item.id}>
+                      ⋮
+                    </button>
+                    <div class="dropdown" id={`drop-${item.id}`}>
+                      <button
+                        class="drop-item btn-share"
+                        data-url={item.contenido || "Sin enlace"}
+                      >
+                        Compartir
+                      </button>
+                      <button
+                        class="drop-item btn-edit"
+                        data-id={item.id}
+                        data-titulo={item.titulo}
+                        data-resumen={item.resumen}
+                      >
+                        Editar
+                      </button>
+                      <button
+                        class="drop-item btn-delete danger"
+                        data-id={item.id}
+                        data-tipo={item.tipo}
+                        data-contenido={item.contenido}
+                      >
+                        Eliminar
+                      </button>
+                      <button class="drop-item btn-reanalyze" data-id={item.id} data-tipo={item.tipo} data-contenido={item.contenido}>✨ Re-analizar IA</button>
+                    </div>
+                  </div>
+                </div>
+
+                <h3 class="card-title text-target">
+                  {item.titulo || "Sin título"}
+                </h3>
+                <p class="card-desc text-target">{item.resumen}</p>
+
+                <!-- BOTONES DE ACCIÓN DINÁMICOS -->
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <button class="card-action-btn btn-view" data-tipo={item.tipo} data-contenido={item.contenido} data-url={STORAGE_URL + item.contenido} data-titulo={item.titulo}>
+                            <i class="bi bi-binoculars-fill"></i> Ver
+                    </button>
+                    {item.tipo === 'link' && (
+                        <a href={item.contenido} target="_blank" class="card-action-btn primary">
+                            <i class="bi bi-link"></i> Abrir Link
+                        </a>
+                    )}
+                    
+                    {item.tipo === 'nota' && (
+                        <button class="card-action-btn btn-copy" data-text={item.contenido}>
+                            <i class="bi bi-clipboard"></i> Copiar
+                        </button>
+                    )}
+
+                    {(item.tipo === 'imagen' || item.tipo === 'archivo') && (
+                        <button class="card-action-btn btn-download" data-url={STORAGE_URL + item.contenido} data-name={item.titulo || 'imagen'}>
+                            <i class="bi bi-download"></i> Descargar
+                        </button>
+                    )}
+                </div>
+                <div class="metadata-tags tag-target">{item.tags}</div>
+
+                <small class="card-date">
+                  {new Date(item.created_at).toLocaleDateString("es-ES")}
+                </small>
+              </div>
+            </div>
+          ))
+        }
+      </div>
+    </main>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../scripts/main.js"></script>
+
+    <!-- MODALES -->
+    <div id="vaultOverlay" class="vault-overlay" onclick="cerrarModales()"></div>
+
+    <div id="modalEdit" class="vault-modal">
+        <h3>Editar Elemento</h3>
+        <p class="subtitle">Actualiza la información en tu bóveda.</p>
+        <input type="text" id="editTitulo" class="capture-input" style="width: 100%; margin: 5px 0 0 0;" placeholder="Título" />
+        <textarea id="editResumen" class="textarea-edit" placeholder="Descripción breve o resumen..."></textarea>
+        <div style="display: flex; justify-content: flex-end; margin-top: 15px;">
+            <button class="btn-cancel" onclick="cerrarModales()">Cancelar</button>
+            <button class="btn-save" id="btnConfirmEdit">Guardar</button>
+        </div>
+    </div>
+
+    <div id="modalDelete" class="vault-modal">
+        <h3>¿Eliminar elemento?</h3>
+        <p class="subtitle" style="margin: 10px 0 25px 0;">Esta acción eliminará el archivo o nota permanentemente. No se puede deshacer.</p>
+        <div style="display: flex; justify-content: flex-end;">
+            <button class="btn-cancel" onclick="cerrarModales()">Cancelar</button>
+            <button class="btn-save" style="background: #dc2626;" id="btnConfirmDelete">Eliminar</button>
+        </div>
+    </div>
+
+    <div id="modalView" class="vault-modal modal-wide">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h3 id="viewTitle">Contenido</h3>
+            <button style="background:none; border:none; font-size:1.5rem; cursor:pointer;" onclick="cerrarModales()">×</button>
+        </div>
+        <div id="viewContent" style="max-height: 70vh; overflow-y: auto;"></div>
+    </div>
+  </body>
+</html>
