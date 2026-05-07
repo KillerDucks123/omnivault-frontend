@@ -10,15 +10,42 @@ async function cargarElementos() {
         
         const contenedor = document.getElementById('contenedor-tarjetas');
         if (!contenedor) return;
-        contenedor.innerHTML = ''; // Limpiamos lo viejo
+        contenedor.innerHTML = ''; 
 
         elementos.forEach(item => {
-            // Mantenemos item-card para no romper el buscador y otras logicas
+            const fecha = new Date(item.created_at).toLocaleDateString('es-CL');
+            const esImagen = item.tipo === 'imagen';
+            const urlArchivo = esImagen ? `${STORAGE_URL}${item.contenido}` : null;
+
             contenedor.innerHTML += `
                 <div class="card item-card" data-tags="${item.tags || ''}">
-                    <div class="card-content">
-                         <h3 class="card-title">${item.titulo || item.nombre || 'Sin título'}</h3>
-                         <p class="card-desc">${item.resumen || ''}</p>
+                    ${esImagen ? `<img src="${urlArchivo}" class="card-img-top" alt="Vista previa">` : ''}
+                    <div class="card-content p-3">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <span class="badge bg-secondary mb-2">${item.tipo.toUpperCase()}</span>
+                            <small class="text-muted">${fecha}</small>
+                        </div>
+                        <h3 class="card-title h5">${item.titulo || 'Sin título'}</h3>
+                        <p class="card-desc small text-secondary">${item.resumen || ''}</p>
+                        
+                        <div class="card-actions d-flex gap-2 mt-3">
+                            <button class="btn btn-sm btn-outline-primary btn-view" 
+                                data-id="${item.id}" data-tipo="${item.tipo}" 
+                                data-contenido="${item.contenido}" data-url="${urlArchivo}" 
+                                data-titulo="${item.titulo}">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary btn-edit" 
+                                data-id="${item.id}" data-titulo="${item.titulo}" 
+                                data-resumen="${item.resumen}">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger btn-delete" 
+                                data-id="${item.id}" data-tipo="${item.tipo}" 
+                                data-contenido="${item.contenido}">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
             `;
