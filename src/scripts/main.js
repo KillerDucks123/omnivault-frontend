@@ -50,7 +50,7 @@ btn.addEventListener("click", async () => {
             formData.append("archivo", file);
 
             const response = await fetch(
-                "http://localhost:3000/subir-archivo",
+                "omnivault-backend-production.up.railway.app/subir-archivo",
                 {
                     method: "POST",
                     body: formData,
@@ -58,7 +58,7 @@ btn.addEventListener("click", async () => {
             );
             if (response.ok) location.reload();
         } else if (texto) {
-            const response = await fetch("http://localhost:3000/guardar", {
+            const response = await fetch("omnivault-backend-production.up.railway.app/guardar", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ texto }),
@@ -167,7 +167,7 @@ document.addEventListener("click", async (e) => {
 
         try {
             // Llamamos a la nueva ruta del backend
-            const res = await fetch(`http://localhost:3000/item/${id}/reanalizar`, {
+            const res = await fetch(`omnivault-backend-production.up.railway.app/item/${id}/reanalizar`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ tipo, contenido }),
@@ -269,7 +269,7 @@ document.addEventListener("click", async (e) => {
         const btn = e.target;
         btn.innerHTML = 'Eliminando...'; btn.disabled = true;
         try {
-            const res = await fetch(`http://localhost:3000/item/${activeItem.id}`, {
+            const res = await fetch(`omnivault-backend-production.up.railway.app/item/${activeItem.id}`, {
                 method: 'DELETE', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ tipo: activeItem.tipo, contenido: activeItem.contenido })
             });
@@ -283,7 +283,7 @@ document.addEventListener("click", async (e) => {
         const resumen = document.getElementById('editResumen').value;
         btn.innerHTML = 'Guardando...'; btn.disabled = true;
         try {
-            const res = await fetch(`http://localhost:3000/item/${activeItem.id}`, {
+            const res = await fetch(`omnivault-backend-production.up.railway.app/item/${activeItem.id}`, {
                 method: 'PUT', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ titulo, resumen })
             });
