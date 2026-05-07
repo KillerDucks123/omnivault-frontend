@@ -7,45 +7,87 @@ async function cargarElementos() {
     try {
         const response = await fetch(`${API_URL}/obtener-elementos`);
         const elementos = await response.json();
-        
+
+        // Ojo: Asegúrate de que el ID en index.astro sea "contenedor-tarjetas"
         const contenedor = document.getElementById('contenedor-tarjetas');
         if (!contenedor) return;
-        contenedor.innerHTML = ''; 
+        contenedor.innerHTML = '';
 
         elementos.forEach(item => {
-            const fecha = new Date(item.created_at).toLocaleDateString('es-CL');
-            const esImagen = item.tipo === 'imagen';
-            const urlArchivo = esImagen ? `${STORAGE_URL}${item.contenido}` : null;
+            const fecha = new Date(item.created_at).toLocaleDateString("es-ES");
+            const fullUrl = STORAGE_URL + item.contenido;
 
             contenedor.innerHTML += `
                 <div class="card item-card" data-tags="${item.tags || ''}">
-                    ${esImagen ? `<img src="${urlArchivo}" class="card-img-top" alt="Vista previa">` : ''}
-                    <div class="card-content p-3">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <span class="badge bg-secondary mb-2">${item.tipo.toUpperCase()}</span>
-                            <small class="text-muted">${fecha}</small>
+                    ${item.tipo === "imagen" ? `
+                        <img
+                          src="${fullUrl}"
+                          class="preview-img"
+                          alt="Vista previa"
+                          loading="lazy"
+                        />
+                    ` : ''}
+
+                    <div class="card-content">
+                        <div class="card-header-top">
+                            <span class="tag tag-${item.tipo}">${item.tipo}</span>
+                            <div class="menu-container">
+                                <button class="btn-menu" data-id="${item.id}">
+                                  ⋮
+                                </button>
+                                <div class="dropdown" id="drop-${item.id}">
+                                    <button class="drop-item btn-share" data-url="${item.contenido || 'Sin enlace'}">
+                                        Compartir
+                                    </button>
+                                    <button class="drop-item btn-edit" 
+                                        data-id="${item.id}" 
+                                        data-titulo="${item.titulo || ''}" 
+                                        data-resumen="${item.resumen || ''}">
+                                        Editar
+                                    </button>
+                                    <button class="drop-item btn-delete danger" 
+                                        data-id="${item.id}" 
+                                        data-tipo="${item.tipo}" 
+                                        data-contenido="${item.contenido}">
+                                        Eliminar
+                                    </button>
+                                </div>
+                            </div>
                         </div>
-                        <h3 class="card-title h5">${item.titulo || 'Sin título'}</h3>
-                        <p class="card-desc small text-secondary">${item.resumen || ''}</p>
-                        
-                        <div class="card-actions d-flex gap-2 mt-3">
-                            <button class="btn btn-sm btn-outline-primary btn-view" 
-                                data-id="${item.id}" data-tipo="${item.tipo}" 
-                                data-contenido="${item.contenido}" data-url="${urlArchivo}" 
+
+                        <h3 class="card-title text-target">${item.titulo || "Sin título"}</h3>
+                        <p class="card-desc text-target">${item.resumen || ''}</p>
+
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <button class="card-action-btn btn-view" 
+                                data-tipo="${item.tipo}" 
+                                data-contenido="${item.contenido}" 
+                                data-url="${fullUrl}" 
                                 data-titulo="${item.titulo}">
-                                <i class="bi bi-eye"></i>
+                                <i class="bi bi-binoculars-fill"></i> Ver
                             </button>
-                            <button class="btn btn-sm btn-outline-secondary btn-edit" 
-                                data-id="${item.id}" data-titulo="${item.titulo}" 
-                                data-resumen="${item.resumen}">
-                                <i class="bi bi-pencil"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger btn-delete" 
-                                data-id="${item.id}" data-tipo="${item.tipo}" 
-                                data-contenido="${item.contenido}">
-                                <i class="bi bi-trash"></i>
-                            </button>
+
+                            ${item.tipo === 'link' ? `
+                                <a href="${item.contenido}" target="_blank" class="card-action-btn primary">
+                                    <i class="bi bi-link"></i> Abrir Link
+                                </a>
+                            ` : ''}
+                            
+                            ${item.tipo === 'nota' ? `
+                                <button class="card-action-btn btn-copy" data-text="${item.contenido}">
+                                    <i class="bi bi-clipboard"></i> Copiar
+                                </button>
+                            ` : ''}
+
+                            ${(item.tipo === 'imagen' || item.tipo === 'archivo') ? `
+                                <button class="card-action-btn btn-download" data-url="${fullUrl}" data-name="${item.titulo || 'archivo'}">
+                                    <i class="bi bi-download"></i> Descargar
+                                </button>
+                            ` : ''}
                         </div>
+
+                        <div class="metadata-tags tag-target">${item.tags || ''}</div>
+                        <small class="card-date">${fecha}</small>
                     </div>
                 </div>
             `;
@@ -84,7 +126,7 @@ document
     .addEventListener("click", () => inputArchivo.click());
 
 // --- AUTO-EXPAND TEXTAREA ---
-inputTexto.addEventListener("input", function() {
+inputTexto.addEventListener("input", function () {
     this.style.height = 'auto';
     this.style.height = (this.scrollHeight) + 'px';
 });
@@ -349,7 +391,7 @@ document.addEventListener("click", async (e) => {
 });
 
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW no registrado', err));
-  });
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW no registrado', err));
+    });
 }
