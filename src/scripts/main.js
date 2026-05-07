@@ -1,14 +1,51 @@
-let activeItem = { id: null, tipo: null, contenido: null };
+// main.js - Lógica principal del dashboard con autenticación
+import { createClient } from '@supabase/supabase-js';
+import { navigate } from 'astro:transitions/client';
 
 const API_URL = 'https://omnivault-backend-production.up.railway.app';
 const STORAGE_URL = `https://swvotipfgjkwkbkbshsu.supabase.co/storage/v1/object/public/archivos-vault/`;
 
-async function cargarElementos() {
-    try {
-        const response = await fetch(`${API_URL}/obtener-elementos`);
-        const elementos = await response.json();
+// Inicializar Supabase con variables de entorno
+const supabase = createClient(
+    import.meta.env.PUBLIC_SUPABASE_URL,
+    import.meta.env.PUBLIC_SUPABASE_KEY
+);
 
-        // Ojo: Asegúrate de que el ID en index.astro sea "contenedor-tarjetas"
+let activeItem = { id: null, tipo: null, contenido: null };
+let currentToken = null;
+
+// Función para verificar sesión y redirigir si es necesario
+async function verificarSesion() {
+    const { data: { session } } = await supabase.auth.getSession();
+
+    if (!session) {
+        if (window.location.pathname !== '/login') {
+            navigate('/login');
+        }
+        return null;
+    }
+    currentToken = session.access_token;
+    return session;
+}
+
+// Función unificada para cargar elementos
+async function cargarElementos(token) {
+    const finalToken = token || currentToken;
+    if (!finalToken) return;
+
+    try {
+        const response = await fetch(`${API_URL}/obtener-elementos`, {
+            headers: {
+                'Authorization': `Bearer ${finalToken}`
+            }
+        });
+        
+        if (response.status === 401) {
+            navigate('/login');
+            return;
+        }
+
+        const elementos = await response.json();
         const contenedor = document.getElementById('contenedor-tarjetas');
         if (!contenedor) return;
         contenedor.innerHTML = '';
@@ -97,8 +134,21 @@ async function cargarElementos() {
     }
 }
 
-// Ejecutar al cargar la página
-document.addEventListener('DOMContentLoaded', cargarElementos);
+// Orquestador de carga con Astro Transitions
+document.addEventListener('astro:page-load', async () => {
+    const session = await verificarSesion();
+    if (session && window.location.pathname === '/') {
+        cargarElementos(session.access_token);
+    }
+
+    // Listener para cerrar sesión
+    document.getElementById('btnCerrarSesion')?.addEventListener('click', async () => {
+        await supabase.auth.signOut();
+        navigate('/login');
+    });
+});
+
+
 
 
 window.cerrarModales = () => {
@@ -152,15 +202,21 @@ btn.addEventListener("click", async () => {
 
             const response = await fetch(`${API_URL}/subir-archivo`, {
                 method: "POST",
+                headers: { "Authorization": `Bearer ${currentToken}` },
                 body: formData,
             });
+
             if (response.ok) location.reload();
         } else if (texto) {
             const response = await fetch(`${API_URL}/guardar`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: { 
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${currentToken}`
+                },
                 body: JSON.stringify({ texto }),
             });
+
             if (response.ok) location.reload();
         }
     } catch (error) {
@@ -267,9 +323,13 @@ document.addEventListener("click", async (e) => {
             // Llamamos a la nueva ruta del backend
             const res = await fetch(`${API_URL}/item/${id}/reanalizar`, {
                 method: "PUT",
-                headers: { "Content-Type": "application/json" },
+                headers: { 
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${currentToken}`
+                },
                 body: JSON.stringify({ tipo, contenido }),
             });
+
 
             if (res.ok) {
                 location.reload(); // Recargamos para ver el resultado
@@ -368,9 +428,14 @@ document.addEventListener("click", async (e) => {
         btn.innerHTML = 'Eliminando...'; btn.disabled = true;
         try {
             const res = await fetch(`${API_URL}/item/${activeItem.id}`, {
-                method: 'DELETE', headers: { 'Content-Type': 'application/json' },
+                method: 'DELETE', 
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${currentToken}`
+                },
                 body: JSON.stringify({ tipo: activeItem.tipo, contenido: activeItem.contenido })
             });
+
             if (res.ok) location.reload();
         } catch (err) { console.error(err); }
     });
@@ -382,9 +447,14 @@ document.addEventListener("click", async (e) => {
         btn.innerHTML = 'Guardando...'; btn.disabled = true;
         try {
             const res = await fetch(`${API_URL}/item/${activeItem.id}`, {
-                method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                method: 'PUT', 
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${currentToken}`
+                },
                 body: JSON.stringify({ titulo, resumen })
             });
+
             if (res.ok) location.reload();
         } catch (err) { console.error(err); }
     });
