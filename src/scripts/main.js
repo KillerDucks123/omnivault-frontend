@@ -2,7 +2,11 @@
 import { createClient } from '@supabase/supabase-js';
 import { navigate } from 'astro:transitions/client';
 
-const API_URL = 'https://omnivault-backend-production.up.railway.app';
+// Detecta automáticamente si estás en local o en producción
+const API_URL = window.location.hostname === 'localhost'
+    ? 'http://localhost:3000'
+    : 'https://omnivault-backend-production.up.railway.app';
+
 const STORAGE_URL = `https://swvotipfgjkwkbkbshsu.supabase.co/storage/v1/object/public/archivos-vault/`;
 
 // Inicializar Supabase con variables de entorno
@@ -39,7 +43,7 @@ async function cargarElementos(token) {
                 'Authorization': `Bearer ${finalToken}`
             }
         });
-        
+
         if (response.status === 401) {
             navigate('/login');
             return;
@@ -210,7 +214,7 @@ btn.addEventListener("click", async () => {
         } else if (texto) {
             const response = await fetch(`${API_URL}/guardar`, {
                 method: "POST",
-                headers: { 
+                headers: {
                     "Content-Type": "application/json",
                     "Authorization": `Bearer ${currentToken}`
                 },
@@ -323,7 +327,7 @@ document.addEventListener("click", async (e) => {
             // Llamamos a la nueva ruta del backend
             const res = await fetch(`${API_URL}/item/${id}/reanalizar`, {
                 method: "PUT",
-                headers: { 
+                headers: {
                     "Content-Type": "application/json",
                     "Authorization": `Bearer ${currentToken}`
                 },
@@ -428,8 +432,8 @@ document.addEventListener("click", async (e) => {
         btn.innerHTML = 'Eliminando...'; btn.disabled = true;
         try {
             const res = await fetch(`${API_URL}/item/${activeItem.id}`, {
-                method: 'DELETE', 
-                headers: { 
+                method: 'DELETE',
+                headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${currentToken}`
                 },
@@ -447,8 +451,8 @@ document.addEventListener("click", async (e) => {
         btn.innerHTML = 'Guardando...'; btn.disabled = true;
         try {
             const res = await fetch(`${API_URL}/item/${activeItem.id}`, {
-                method: 'PUT', 
-                headers: { 
+                method: 'PUT',
+                headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${currentToken}`
                 },
