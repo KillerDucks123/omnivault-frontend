@@ -1,18 +1,7 @@
 ---
-import { createClient } from "@supabase/supabase-js";
-import "bootstrap-icons/font/bootstrap-icons.css";
+const API_URL = 'https://omnivault-backend-production.up.railway.app';
+const STORAGE_URL = `https://vmdqshrvmsfpxisqbwzx.supabase.co/storage/v1/object/public/archivos-vault/`;
 
-const supabase = createClient(
-  import.meta.env.PUBLIC_SUPABASE_URL,
-  import.meta.env.PUBLIC_SUPABASE_KEY,
-);
-
-const { data: items } = await supabase
-  .from("vault_items")
-  .select("*")
-  .order("created_at", { ascending: false });
-
-const STORAGE_URL = `${ import.meta.env.PUBLIC_SUPABASE_URL }/storage/v1/object/public/archivos-vault/`;
 
 interface VaultItem {
   id: string;
@@ -98,91 +87,10 @@ import "../styles/global.css";
         </div>
       </div>
 
-      <div class="grid" id="contenedorTarjetas">
-        {
-          items?.map((item: VaultItem) => (
-            <div class="card item-card" data-tags={item.tags}>
-              {item.tipo === "imagen" && (
-                <img
-                  src={STORAGE_URL + item.contenido}
-                  class="preview-img"
-                  alt="Vista previa"
-                  loading="lazy"
-                />
-              )}
-              <div class="card-content">
-                <div class="card-header-top">
-                  <span class={`tag tag-${item.tipo}`}>{item.tipo}</span>
-                  <div class="menu-container">
-                    <button class="btn-menu" data-id={item.id}>
-                      ⋮
-                    </button>
-                    <div class="dropdown" id={`drop-${item.id}`}>
-                      <button
-                        class="drop-item btn-share"
-                        data-url={item.contenido || "Sin enlace"}
-                      >
-                        Compartir
-                      </button>
-                      <button
-                        class="drop-item btn-edit"
-                        data-id={item.id}
-                        data-titulo={item.titulo}
-                        data-resumen={item.resumen}
-                      >
-                        Editar
-                      </button>
-                      <button
-                        class="drop-item btn-delete danger"
-                        data-id={item.id}
-                        data-tipo={item.tipo}
-                        data-contenido={item.contenido}
-                      >
-                        Eliminar
-                      </button>
-                      <button class="drop-item btn-reanalyze" data-id={item.id} data-tipo={item.tipo} data-contenido={item.contenido}>✨ Re-analizar IA</button>
-                    </div>
-                  </div>
-                </div>
-
-                <h3 class="card-title text-target">
-                  {item.titulo || "Sin título"}
-                </h3>
-                <p class="card-desc text-target">{item.resumen}</p>
-
-                <!-- BOTONES DE ACCIÓN DINÁMICOS -->
-                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                    <button class="card-action-btn btn-view" data-tipo={item.tipo} data-contenido={item.contenido} data-url={STORAGE_URL + item.contenido} data-titulo={item.titulo}>
-                            <i class="bi bi-binoculars-fill"></i> Ver
-                    </button>
-                    {item.tipo === 'link' && (
-                        <a href={item.contenido} target="_blank" class="card-action-btn primary">
-                            <i class="bi bi-link"></i> Abrir Link
-                        </a>
-                    )}
-                    
-                    {item.tipo === 'nota' && (
-                        <button class="card-action-btn btn-copy" data-text={item.contenido}>
-                            <i class="bi bi-clipboard"></i> Copiar
-                        </button>
-                    )}
-
-                    {(item.tipo === 'imagen' || item.tipo === 'archivo') && (
-                        <button class="card-action-btn btn-download" data-url={STORAGE_URL + item.contenido} data-name={item.titulo || 'imagen'}>
-                            <i class="bi bi-download"></i> Descargar
-                        </button>
-                    )}
-                </div>
-                <div class="metadata-tags tag-target">{item.tags}</div>
-
-                <small class="card-date">
-                  {new Date(item.created_at).toLocaleDateString("es-ES")}
-                </small>
-              </div>
-            </div>
-          ))
-        }
+      <div class="grid" id="contenedor-tarjetas">
+        <!-- Los elementos se cargarán dinámicamente desde main.js -->
       </div>
+
     </main>
     </div>
 </div>

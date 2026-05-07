@@ -1,6 +1,36 @@
 let activeItem = { id: null, tipo: null, contenido: null };
 
 const API_URL = 'https://omnivault-backend-production.up.railway.app';
+const STORAGE_URL = `https://vmdqshrvmsfpxisqbwzx.supabase.co/storage/v1/object/public/archivos-vault/`;
+
+async function cargarElementos() {
+    try {
+        const response = await fetch(`${API_URL}/obtener-elementos`);
+        const elementos = await response.json();
+        
+        const contenedor = document.getElementById('contenedor-tarjetas');
+        if (!contenedor) return;
+        contenedor.innerHTML = ''; // Limpiamos lo viejo
+
+        elementos.forEach(item => {
+            // Mantenemos item-card para no romper el buscador y otras logicas
+            contenedor.innerHTML += `
+                <div class="card item-card" data-tags="${item.tags || ''}">
+                    <div class="card-content">
+                         <h3 class="card-title">${item.titulo || item.nombre || 'Sin título'}</h3>
+                         <p class="card-desc">${item.resumen || ''}</p>
+                    </div>
+                </div>
+            `;
+        });
+    } catch (error) {
+        console.error("Error al cargar elementos:", error);
+    }
+}
+
+// Ejecutar al cargar la página
+document.addEventListener('DOMContentLoaded', cargarElementos);
+
 
 window.cerrarModales = () => {
     document.querySelectorAll('.vault-modal, .vault-overlay').forEach(el => el.classList.remove('show'));
