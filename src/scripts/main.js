@@ -1,7 +1,7 @@
 let activeItem = { id: null, tipo: null, contenido: null };
 
 const API_URL = 'https://omnivault-backend-production.up.railway.app';
-const STORAGE_URL = `https://vmdqshrvmsfpxisqbwzx.supabase.co/storage/v1/object/public/archivos-vault/`;
+const STORAGE_URL = `https://swvotipfgjkwkbkbshsu.supabase.co/storage/v1/object/public/archivos-vault/`;
 
 async function cargarElementos() {
     try {
