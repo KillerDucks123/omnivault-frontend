@@ -21,6 +21,13 @@
     padding: 0;
 }
 
+
+@media (max-width: 767px) {
+    .contenedor-principal {
+        padding: 0 1rem;
+    }
+}
+
 body {
     overflow-x: hidden;
     font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;

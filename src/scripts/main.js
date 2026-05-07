@@ -1,5 +1,7 @@
 let activeItem = { id: null, tipo: null, contenido: null };
 
+const API_URL = 'https://omnivault-backend-production.up.railway.app';
+
 window.cerrarModales = () => {
     document.querySelectorAll('.vault-modal, .vault-overlay').forEach(el => el.classList.remove('show'));
     document.getElementById('viewContent').innerHTML = ''; // Limpiar visor
@@ -49,16 +51,13 @@ btn.addEventListener("click", async () => {
             const formData = new FormData();
             formData.append("archivo", file);
 
-            const response = await fetch(
-                "omnivault-backend-production.up.railway.app/subir-archivo",
-                {
-                    method: "POST",
-                    body: formData,
-                },
-            );
+            const response = await fetch(`${API_URL}/subir-archivo`, {
+                method: "POST",
+                body: formData,
+            });
             if (response.ok) location.reload();
         } else if (texto) {
-            const response = await fetch("omnivault-backend-production.up.railway.app/guardar", {
+            const response = await fetch(`${API_URL}/guardar`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ texto }),
@@ -167,7 +166,7 @@ document.addEventListener("click", async (e) => {
 
         try {
             // Llamamos a la nueva ruta del backend
-            const res = await fetch(`omnivault-backend-production.up.railway.app/item/${id}/reanalizar`, {
+            const res = await fetch(`${API_URL}/item/${id}/reanalizar`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ tipo, contenido }),
@@ -269,7 +268,7 @@ document.addEventListener("click", async (e) => {
         const btn = e.target;
         btn.innerHTML = 'Eliminando...'; btn.disabled = true;
         try {
-            const res = await fetch(`omnivault-backend-production.up.railway.app/item/${activeItem.id}`, {
+            const res = await fetch(`${API_URL}/item/${activeItem.id}`, {
                 method: 'DELETE', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ tipo: activeItem.tipo, contenido: activeItem.contenido })
             });
@@ -283,7 +282,7 @@ document.addEventListener("click", async (e) => {
         const resumen = document.getElementById('editResumen').value;
         btn.innerHTML = 'Guardando...'; btn.disabled = true;
         try {
-            const res = await fetch(`omnivault-backend-production.up.railway.app/item/${activeItem.id}`, {
+            const res = await fetch(`${API_URL}/item/${activeItem.id}`, {
                 method: 'PUT', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ titulo, resumen })
             });
